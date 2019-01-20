@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import graphene
 from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from flask_graphql import GraphQLView
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://pepe:pepe@localhost/rssalg"
@@ -84,7 +85,7 @@ app.add_url_rule(
     )
 )
 
-
+CORS(app)
 @app.route('/')
 def hello():
     return 'Hello World!'

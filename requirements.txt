@@ -5,3 +5,4 @@ flask-migrate
 flask-sqlalchemy
 graphene
 graphene-sqlalchemy
+flask-cors
