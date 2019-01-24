@@ -1,95 +1,48 @@
 from flask import Flask
+from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
-import graphene
-from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
-from flask_graphql import GraphQLView
+from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://pepe:pepe@localhost/rssalg"
+api = Api(app)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://pepe:pepe@localhost/alg"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'some-secret-string'
+
+import models
+
 
 db = SQLAlchemy(app)
 
 
-class User(db.Model):
-    __tablename__ = 'users'
-    uuid = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(256), index=True, unique=True)
-    posts = db.relationship('Post', backref='author')
-
-    def __repr__(self):
-        return '<User %r>' % self.username
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
 
-class Post(db.Model):
-    __tablename__ = 'posts'
-    uuid = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(256), index=True)
-    body = db.Column(db.Text)
-    author_id = db.Column(db.Integer, db.ForeignKey('users.uuid'))
+app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
+jwt = JWTManager(app)
 
-    def __repr__(self):
-        return '<Post %r>' % self.title
-
-
-class PostObject(SQLAlchemyObjectType):
-    class Meta:
-        model = Post
-        interfaces = (graphene.relay.Node,)
-
-
-class UserObject(SQLAlchemyObjectType):
-    class Meta:
-        model = User
-        interfaces = (graphene.relay.Node,)
-
-
-class Query(graphene.ObjectType):
-    node = graphene.relay.Node.Field()
-    all_posts = SQLAlchemyConnectionField(PostObject)
-    all_users = SQLAlchemyConnectionField(UserObject)
-
-
-class CreatePost(graphene.Mutation):
-    class Arguments:
-        title = graphene.String(required=True)
-        body = graphene.String(required=True)
-        username = graphene.String(required=True)
-
-    post = graphene.Field(lambda: PostObject)
-
-    def mutate(self, info, title, body, username):
-        user = User.query.filter_by(username=username).first()
-        post = Post(title=title, body=body)
-        if user is not None:
-            post.author = user
-        db.session.add(post)
-        db.session.commit()
-        return CreatePost(post=post)
-
-
-class Mutation(graphene.ObjectType):
-    create_post = CreatePost.Field()
-
-
-schema = graphene.Schema(query=Query, mutation=Mutation)
-
-
-app.add_url_rule(
-    '/graphql',
-    view_func=GraphQLView.as_view(
-        'graphql',
-        schema=schema,
-        graphiql=True  # for having the GraphiQL interface
-    )
-)
-
+app.config['JWT_BLACKLIST_ENABLED'] = True
+app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
 CORS(app)
-@app.route('/')
-def hello():
-    return 'Hello World!'
 
 
-if __name__ == '__main__':
-    app.run()
+@jwt.token_in_blacklist_loader
+def check_if_token_in_blacklist(decrypted_token):
+    jti = decrypted_token['jti']
+    return models.RevokedTokenModel.is_jti_blacklisted(jti)
+
+
+import views.views
+import resources.resources as res
+
+api.add_resource(res.UserRegistration, '/registration')
+api.add_resource(res.UserLogin, '/login')
+api.add_resource(res.UserLogoutAccess, '/logout/access')
+api.add_resource(res.UserLogoutRefresh, '/logout/refresh')
+api.add_resource(res.TokenRefresh, '/token/refresh')
+api.add_resource(res.AllUsers, '/users')
+api.add_resource(res.SecretResource, '/secret')
