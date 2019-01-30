@@ -39,7 +39,7 @@ def check_if_token_in_blacklist(decrypted_token):
 import views.views
 import resources.resources as res
 
-api.add_resource(res.UserRegistration, '/registration')
+api.add_resource(res.UserRegistration, '/signUp')
 api.add_resource(res.UserLogin, '/login')
 api.add_resource(res.UserLogoutAccess, '/logout/access')
 api.add_resource(res.UserLogoutRefresh, '/logout/refresh')

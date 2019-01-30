@@ -6,6 +6,9 @@ from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_r
 parser = reqparse.RequestParser()
 parser.add_argument('username', help='This field cannot be blank', required=True)
 parser.add_argument('password', help='This field cannot be blank', required=True)
+parser.add_argument('email', help='This field cannot be blank', required=True)
+parser.add_argument('name', help='This field cannot be blank', required=True)
+parser.add_argument('surname', help='This field cannot be blank', required=True)
 
 
 class UserRegistration(Resource):
@@ -17,7 +20,10 @@ class UserRegistration(Resource):
 
         new_user = UserModel(
             username=data['username'],
-            password=UserModel.generate_hash(data['password'])
+            password=UserModel.generate_hash(data['password']),
+            email=data['email'],
+            name=data['name'],
+            surname=data['surname']
         )
 
         try:
