@@ -3,16 +3,16 @@ from models.models import UserModel, RevokedTokenModel
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required,
                                 get_jwt_identity, get_raw_jwt)
 
-parser = reqparse.RequestParser()
-parser.add_argument('username', help='This field cannot be blank', required=True)
-parser.add_argument('password', help='This field cannot be blank', required=True)
-parser.add_argument('email', help='This field cannot be blank', required=True)
-parser.add_argument('name', help='This field cannot be blank', required=True)
-parser.add_argument('surname', help='This field cannot be blank', required=True)
-
 
 class UserRegistration(Resource):
     def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('username', help='This field cannot be blank', required=True)
+        parser.add_argument('password', help='This field cannot be blank', required=True)
+        parser.add_argument('email', help='This field cannot be blank', required=True)
+        parser.add_argument('name', help='This field cannot be blank', required=True)
+        parser.add_argument('surname', help='This field cannot be blank', required=True)
+
         data = parser.parse_args()
 
         if UserModel.find_by_username(data['username']):
@@ -41,6 +41,9 @@ class UserRegistration(Resource):
 
 class UserLogin(Resource):
     def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('username', help='This field cannot be blank', required=True)
+        parser.add_argument('password', help='This field cannot be blank', required=True)
         data = parser.parse_args()
         current_user = UserModel.find_by_username(data['username'])
 
@@ -81,6 +84,15 @@ class UserLogoutRefresh(Resource):
             return {'message': 'Refresh token has been revoked'}
         except:
             return {'message': 'Something went wrong'}, 500
+
+
+class GetAllExercises(Resource):
+    @jwt_required
+    def get(self):
+        try:
+            return {'Token': True}
+        except:
+            return {'Token': False}
 
 
 class TokenRefresh(Resource):
