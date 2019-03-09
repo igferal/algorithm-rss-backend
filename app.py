@@ -8,17 +8,17 @@ app = Flask(__name__)
 api = Api(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://pepe:pepe@localhost/alg"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'some-secret-string'
-
-import models
-
-
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SECRET_KEY'] = 'stringsecret'
 db = SQLAlchemy(app)
+
+import models.models
+
 
 
 @app.before_first_request
 def create_tables():
+    print("Hola")
     db.create_all()
 
 
