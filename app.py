@@ -18,7 +18,6 @@ import models.models
 
 @app.before_first_request
 def create_tables():
-    print("Hola")
     db.create_all()
 
 

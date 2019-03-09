@@ -1,5 +1,6 @@
 from flask_restful import Resource, reqparse
-import models
+from models.exercise import Exercise, Heuristic
+from models.user import UserModel
 from flask_jwt_extended import (create_access_token, create_refresh_token, jwt_required, jwt_refresh_token_required,
                                 get_jwt_identity, get_raw_jwt)
 
@@ -54,7 +55,8 @@ class UserLogin(Resource):
             access_token = create_access_token(identity=data['username'])
             refresh_token = create_refresh_token(identity=data['username'])
             return {
-                'message': 'Logged in as {}'.format(current_user.username),
+                'user': {'name': current_user.name, 'surname': current_user.surname, 'username': current_user.username,
+                         'email': current_user.email},
                 'access_token': access_token,
                 'refresh_token': refresh_token
             }
