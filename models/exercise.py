@@ -4,12 +4,12 @@ from app import db
 
 
 class Exercise(db.Model):
-    __tablename__ = 'exercises'
+    __tablename__ = "exercises"
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(120), nullable=False)
-    description = db.Column(db.String(120), nullable=False)
-    pseudocode = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.String(5000), nullable=False)
+    pseudocode = db.Column(db.String(5000), nullable=False)
     children = relationship("Heuristic")
 
     def save_to_db(self):
@@ -23,28 +23,37 @@ class Exercise(db.Model):
     @classmethod
     def return_all(cls):
         def to_json(ex):
+
+            heuristics = list(
+                map(
+                    lambda h: {"description": h.description, "rate": h.rate},
+                    ex.children,
+                )
+            )
+
             return {
-                'id': ex.id,
-                'type': ex.type,
-                'name': ex.name,
-                'description': ex.description,
-                'info': ex.info
+                "id": ex.id,
+                "type": ex.type,
+                "name": ex.name,
+                "description": ex.description,
+                "pseudocode": ex.pseudocode,
+                "heuristics": heuristics,
             }
 
-        return {'exercises': list(map(lambda x: to_json(x), Exercise.query.all()))}
+        return {"exercises": list(map(lambda x: to_json(x), Exercise.query.all()))}
 
     @classmethod
     def delete_all(cls):
         try:
             num_rows_deleted = db.session.query(cls).delete()
             db.session.commit()
-            return {'message': '{} row(s) deleted'.format(num_rows_deleted)}
+            return {"message": "{} row(s) deleted".format(num_rows_deleted)}
         except:
-            return {'message': 'Something went wrong'}
+            return {"message": "Something went wrong"}
 
 
 class Heuristic(db.Model):
-    __tablename__ = 'heuristic'
+    __tablename__ = "heuristic"
     id = db.Column(db.Integer, primary_key=True)
     parent_id = db.Column(db.Integer, ForeignKey("exercises.id"))
     description = db.Column(db.String(120), nullable=False)

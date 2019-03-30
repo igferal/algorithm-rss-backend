@@ -93,7 +93,7 @@ class GetAllExercises(Resource):
     @jwt_required
     def get(self):
         try:
-            return {'Token': True}
+            return Exercise.return_all();
         except:
             return {'Token': False}
 
