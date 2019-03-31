@@ -47,6 +47,7 @@ class UserLogin(Resource):
         parser.add_argument('username', help='This field cannot be blank', required=True)
         parser.add_argument('password', help='This field cannot be blank', required=True)
         data = parser.parse_args()
+
         current_user = UserModel.find_by_username(data['username'])
 
         if not current_user:
@@ -63,6 +64,39 @@ class UserLogin(Resource):
             }
         else:
             return {'message': 'Wrong credentials'}
+
+
+class UserUpdate(Resource):
+    @jwt_required
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('username', help='This field cannot be blank', required=True)
+        parser.add_argument('password', help='Send Password', required=False)
+        parser.add_argument('newPassword', help='Send Password', required=False)
+        parser.add_argument('email', help='This field cannot be blank', required=True)
+        parser.add_argument('name', help='This field cannot be blank', required=True)
+        parser.add_argument('surname', help='This field cannot be blank', required=True)
+
+        data = parser.parse_args()
+        user = UserModel.find_by_username(data['username'])
+
+        if UserModel.verify_hash(data['password'], user.password):
+
+            user = UserModel.update_user(user, data)
+
+            try:
+                access_token = create_access_token(identity=data['username'])
+                refresh_token = create_refresh_token(identity=data['username'])
+                return {
+                    'user': {'name': user.name, 'surname': user.surname, 'username': user.username,
+                             'email': user.email},
+                    'access_token': access_token,
+                    'refresh_token': refresh_token
+                }
+            except:
+                return {'message': 'No se pudo actualizar el usuario'}, 500
+        else:
+            return {'message': 'Incorrect Password'}, 200
 
 
 class UserLogoutAccess(Resource):

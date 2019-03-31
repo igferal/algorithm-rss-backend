@@ -1,6 +1,7 @@
 from app import db
 from passlib.hash import pbkdf2_sha256 as sha256
 
+
 class UserModel(db.Model):
     __tablename__ = 'users'
 
@@ -14,6 +15,16 @@ class UserModel(db.Model):
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
+
+    @classmethod
+    def update_user(cls, user, data):
+        user.name = data["name"]
+        user.surname = data["surname"]
+        if data["password"] != "":
+            user.password = UserModel.generate_hash(data['newPassword'])
+        user.email = data["email"]
+        db.session.commit()
+        return user
 
     @classmethod
     def find_by_username(cls, username):

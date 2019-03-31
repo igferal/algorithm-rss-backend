@@ -35,6 +35,7 @@ import views.views
 import resources.resources as res
 
 api.add_resource(res.UserRegistration, '/signUp')
+api.add_resource(res.UserUpdate, '/updateUser')
 api.add_resource(res.UserLogin, '/login')
 api.add_resource(res.UserLogoutAccess, '/logout/access')
 api.add_resource(res.UserLogoutRefresh, '/logout/refresh')

@@ -8,6 +8,8 @@ class Exercise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(120), nullable=False)
+    image = db.Column(db.String(120), nullable=False)
+    subtitle = db.Column(db.String(120), nullable=False)
     description = db.Column(db.String(5000), nullable=False)
     pseudocode = db.Column(db.String(5000), nullable=False)
     children = relationship("Heuristic")
@@ -23,7 +25,6 @@ class Exercise(db.Model):
     @classmethod
     def return_all(cls):
         def to_json(ex):
-
             heuristics = list(
                 map(
                     lambda h: {"description": h.description, "rate": h.rate},
@@ -37,7 +38,9 @@ class Exercise(db.Model):
                 "name": ex.name,
                 "description": ex.description,
                 "pseudocode": ex.pseudocode,
-                "heuristics": heuristics,
+                "image": ex.image,
+                "subtitle": ex.subtitle,
+                "heuristics": heuristics
             }
 
         return {"exercises": list(map(lambda x: to_json(x), Exercise.query.all()))}
