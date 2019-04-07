@@ -8,7 +8,7 @@ class Exercise(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(120), unique=True, nullable=False)
     name = db.Column(db.String(120), nullable=False)
-    image = db.Column(db.String(120), nullable=False)
+    image = db.Column(db.String(400), nullable=False)
     subtitle = db.Column(db.String(120), nullable=False)
     description = db.Column(db.String(5000), nullable=False)
     pseudocode = db.Column(db.String(5000), nullable=False)

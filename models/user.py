@@ -1,6 +1,13 @@
 from app import db
 from passlib.hash import pbkdf2_sha256 as sha256
 
+friendship = db.Table('friendship',
+                      db.Column('first_friend_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+                      db.Column('second_friend_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+                      db.Column('requested', db.Boolean),
+                      db.Column('accepted', db.Boolean)
+                      )
+
 
 class UserModel(db.Model):
     __tablename__ = 'users'
@@ -11,6 +18,11 @@ class UserModel(db.Model):
     name = db.Column(db.String(120), nullable=False)
     surname = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), nullable=False)
+    friendship = db.relation(
+        'UserModel', secondary=friendship,
+        primaryjoin=friendship.c.first_friend_id == id,
+        secondaryjoin=friendship.c.second_friend_id == id,
+        backref="children")
 
     def save_to_db(self):
         db.session.add(self)
@@ -35,10 +47,13 @@ class UserModel(db.Model):
         def to_json(x):
             return {
                 'username': x.username,
-                'password': x.password
+                'name': x.name,
+                'surname': x.surname,
+                'email': x.email,
+                'friends': x.friendship
             }
 
-        return {'users': list(map(lambda x: to_json(x), UserModel.query.all()))}
+        return list(map(lambda x: to_json(x), UserModel.query.all()))
 
     @classmethod
     def delete_all(cls):

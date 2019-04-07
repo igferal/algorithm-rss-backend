@@ -1,3 +1,5 @@
+import datetime
+
 from flask_restful import Resource, reqparse
 from models.exercise import Exercise, Heuristic
 from models.user import UserModel
@@ -24,13 +26,15 @@ class UserRegistration(Resource):
             password=UserModel.generate_hash(data['password']),
             email=data['email'],
             name=data['name'],
-            surname=data['surname']
+            surname=data['surname'],
+
         )
 
         try:
             new_user.save_to_db()
-            access_token = create_access_token(identity=data['username'])
-            refresh_token = create_refresh_token(identity=data['username'])
+            expires = datetime.timedelta(days=365)
+            access_token = create_access_token(identity=data['username'], expires_delta=expires)
+            refresh_token = create_refresh_token(identity=data['username'], expires_delta=expires)
             return {
                 'user': {'name': new_user.name, 'surname': new_user.surname, 'username': new_user.username,
                          'email': new_user.email},
@@ -54,8 +58,9 @@ class UserLogin(Resource):
             return {'message': 'User {} doesn\'t exist'.format(data['username'])}
 
         if UserModel.verify_hash(data['password'], current_user.password):
-            access_token = create_access_token(identity=data['username'])
-            refresh_token = create_refresh_token(identity=data['username'])
+            expires = datetime.timedelta(days=365)
+            access_token = create_access_token(identity=data['username'], expires_delta=expires)
+            refresh_token = create_refresh_token(identity=data['username'], expires_delta=expires)
             return {
                 'user': {'name': current_user.name, 'surname': current_user.surname, 'username': current_user.username,
                          'email': current_user.email},
@@ -85,8 +90,9 @@ class UserUpdate(Resource):
             user = UserModel.update_user(user, data)
 
             try:
-                access_token = create_access_token(identity=data['username'])
-                refresh_token = create_refresh_token(identity=data['username'])
+                expires = datetime.timedelta(days=365)
+                access_token = create_access_token(identity=data['username'], expires_delta=expires)
+                refresh_token = create_refresh_token(identity=data['username'], expires_delta=expires)
                 return {
                     'user': {'name': user.name, 'surname': user.surname, 'username': user.username,
                              'email': user.email},
@@ -127,7 +133,7 @@ class GetAllExercises(Resource):
     @jwt_required
     def get(self):
         try:
-            return Exercise.return_all();
+            return Exercise.return_all()
         except:
             return {'Token': False}
 
@@ -141,8 +147,10 @@ class TokenRefresh(Resource):
 
 
 class AllUsers(Resource):
+    @jwt_required
     def get(self):
-        return UserModel.return_all()
+        current_user = get_jwt_identity()
+        return {'users': list(filter(lambda x: x['username'] != current_user, UserModel.return_all()))}
 
     def delete(self):
         return UserModel.delete_all()
