@@ -14,8 +14,6 @@ db = SQLAlchemy(app)
 
 import models.models
 
-
-
 @app.before_first_request
 def create_tables():
     db.create_all()
@@ -24,12 +22,7 @@ def create_tables():
 app.config['JWT_SECRET_KEY'] = 'jwt-secret-string'
 jwt = JWTManager(app)
 
-
 CORS(app)
-
-
-
-
 
 import views.views
 import resources.resources as res
@@ -43,4 +36,6 @@ api.add_resource(res.TokenRefresh, '/token/refresh')
 api.add_resource(res.AllUsers, '/users')
 api.add_resource(res.SecretResource, '/secret')
 api.add_resource(res.GetAllExercises, '/exercises')
+api.add_resource(res.SendFriendshipRequest, '/addFriend/<friend>')
+api.add_resource(res.AcceptFriendshipRequest, '/acceptFriend/<friend>')
 

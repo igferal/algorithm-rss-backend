@@ -4,9 +4,12 @@ from passlib.hash import pbkdf2_sha256 as sha256
 friendship = db.Table('friendship',
                       db.Column('first_friend_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
                       db.Column('second_friend_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
-                      db.Column('requested', db.Boolean),
-                      db.Column('accepted', db.Boolean)
                       )
+
+friendship_request = db.Table('friendship_request',
+                              db.Column('first_friend_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+                              db.Column('second_friend_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+                              )
 
 
 class UserModel(db.Model):
@@ -22,7 +25,13 @@ class UserModel(db.Model):
         'UserModel', secondary=friendship,
         primaryjoin=friendship.c.first_friend_id == id,
         secondaryjoin=friendship.c.second_friend_id == id,
-        backref="children")
+        backref="user_friend")
+    resolutions = db.relationship('Resolution')
+    friendship_request = db.relation(
+        'UserModel', secondary=friendship_request,
+        primaryjoin=friendship_request.c.first_friend_id == id,
+        secondaryjoin=friendship_request.c.second_friend_id == id,
+        backref="user_friend_request")
 
     def save_to_db(self):
         db.session.add(self)
@@ -43,14 +52,32 @@ class UserModel(db.Model):
         return cls.query.filter_by(username=username).first()
 
     @classmethod
+    def add_friendship_request(cls, username, friend_id):
+        current = cls.query.filter_by(username=username).first()
+        friend = cls.query.filter_by(id=friend_id).first()
+        friend.friendship_request.append(current)
+        db.session.commit()
+        return current
+
+    @classmethod
+    def accept_friendship_request(cls, username, friend_id):
+        current = cls.query.filter_by(username=username).first()
+        friend = cls.query.filter_by(id=friend_id).first()
+        current.friendship.append(current)
+        db.session.commit()
+        return current
+
+    @classmethod
     def return_all(cls):
         def to_json(x):
             return {
+                'id' : x.id,
                 'username': x.username,
                 'name': x.name,
                 'surname': x.surname,
                 'email': x.email,
-                'friends': x.friendship
+                'friends': x.friendship_request,
+                'resolutions': x.resolutions
             }
 
         return list(map(lambda x: to_json(x), UserModel.query.all()))

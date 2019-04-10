@@ -13,6 +13,7 @@ class Exercise(db.Model):
     description = db.Column(db.String(5000), nullable=False)
     pseudocode = db.Column(db.String(5000), nullable=False)
     children = relationship("Heuristic")
+    resolutions = db.relationship('Resolution')
 
     def save_to_db(self):
         db.session.add(self)

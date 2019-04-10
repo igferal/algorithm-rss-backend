@@ -105,6 +105,28 @@ class UserUpdate(Resource):
             return {'message': 'Incorrect Password'}, 200
 
 
+class SendFriendshipRequest(Resource):
+    @jwt_required
+    def get(self, friend):
+        current_user = get_jwt_identity()
+        try:
+            UserModel.add_friendship_request(current_user, friend)
+            return {'message': 'Request Sent'}
+        except:
+            return {'message': 'Error sending requeste'}
+
+
+class AcceptFriendshipRequest(Resource):
+    @jwt_required
+    def get(self, friend):
+        current_user = get_jwt_identity()
+        try:
+            UserModel.accept_friendship_request(current_user, friend)
+            return {'message': 'Request Sent'}
+        except:
+            return {'message': 'Error sending requeste'}
+
+
 class UserLogoutAccess(Resource):
     @jwt_required
     def post(self):
