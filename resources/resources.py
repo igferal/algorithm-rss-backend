@@ -116,6 +116,26 @@ class SendFriendshipRequest(Resource):
             return {'message': 'Error sending requeste'}
 
 
+class GetFriendshipRequest(Resource):
+    @jwt_required
+    def get(self):
+        current_user = get_jwt_identity()
+        try:
+            return {'friendRequests': UserModel.get_friendship_requests(current_user)}
+        except:
+            return {'message': 'Error sending requeste'}
+
+
+class GetFriends(Resource):
+    @jwt_required
+    def get(self):
+        current_user = get_jwt_identity()
+        try:
+            return {'friends': UserModel.get_friends(current_user)}
+        except:
+            return {'message': 'Error sending request'}
+
+
 class AcceptFriendshipRequest(Resource):
     @jwt_required
     def get(self, friend):
@@ -124,7 +144,7 @@ class AcceptFriendshipRequest(Resource):
             UserModel.accept_friendship_request(current_user, friend)
             return {'message': 'Request Sent'}
         except:
-            return {'message': 'Error sending requeste'}
+            return {'message': 'Error sending request'}
 
 
 class UserLogoutAccess(Resource):

@@ -63,24 +63,35 @@ class UserModel(db.Model):
     def accept_friendship_request(cls, username, friend_id):
         current = cls.query.filter_by(username=username).first()
         friend = cls.query.filter_by(id=friend_id).first()
-        current.friendship.append(current)
+        current.friendship.append(friend)
+        friend.friendship.append(current)
         db.session.commit()
         return current
 
     @classmethod
-    def return_all(cls):
-        def to_json(x):
-            return {
-                'id' : x.id,
-                'username': x.username,
-                'name': x.name,
-                'surname': x.surname,
-                'email': x.email,
-                'friends': x.friendship_request,
-                'resolutions': x.resolutions
-            }
+    def get_friendship_requests(cls, username):
+        current = cls.query.filter_by(username=username).first()
+        return list(map(lambda x: cls.to_json(x), current.friendship_request))
 
-        return list(map(lambda x: to_json(x), UserModel.query.all()))
+    @classmethod
+    def get_friends(cls, username):
+        current = cls.query.filter_by(username=username).first()
+        return list(map(lambda x: cls.to_json(x), current.friendship))
+
+    @staticmethod
+    def to_json(x):
+        return {
+            'id': x.id,
+            'username': x.username,
+            'name': x.name,
+            'surname': x.surname,
+            'email': x.email
+        }
+
+    @classmethod
+    def return_all(cls):
+
+        return list(map(lambda x: cls.to_json(x), UserModel.query.all()))
 
     @classmethod
     def delete_all(cls):
