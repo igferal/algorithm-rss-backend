@@ -1,4 +1,5 @@
 import datetime
+import itertools
 
 from flask_restful import Resource, reqparse
 from models.exercise import Exercise, Heuristic
@@ -110,8 +111,8 @@ class SendFriendshipRequest(Resource):
     def get(self, friend):
         current_user = get_jwt_identity()
         try:
-            UserModel.add_friendship_request(current_user, friend)
-            return {'message': 'Request Sent'}
+            result = UserModel.add_friendship_request(current_user, friend)
+            return {'message': result}
         except:
             return {'message': 'Error sending requeste'}
 
@@ -142,6 +143,17 @@ class AcceptFriendshipRequest(Resource):
         current_user = get_jwt_identity()
         try:
             UserModel.accept_friendship_request(current_user, friend)
+            return {'message': 'Request Sent'}
+        except:
+            return {'message': 'Error sending request'}
+
+
+class RejectFriendshipRequest(Resource):
+    @jwt_required
+    def get(self, friend):
+        current_user = get_jwt_identity()
+        try:
+            UserModel.reject_friendship_request(current_user, friend)
             return {'message': 'Request Sent'}
         except:
             return {'message': 'Error sending request'}
@@ -193,6 +205,18 @@ class AllUsers(Resource):
     def get(self):
         current_user = get_jwt_identity()
         return {'users': list(filter(lambda x: x['username'] != current_user, UserModel.return_all()))}
+
+    def delete(self):
+        return UserModel.delete_all()
+
+
+class AllUsersNotFriend(Resource):
+    @jwt_required
+    def get(self):
+        current_user = get_jwt_identity()
+        friends = UserModel.get_friends(current_user)
+        return {
+            'users': list(filter(lambda x: x not in friends and x['username'] != current_user, UserModel.return_all()))}
 
     def delete(self):
         return UserModel.delete_all()

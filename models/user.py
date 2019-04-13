@@ -53,9 +53,22 @@ class UserModel(db.Model):
 
     @classmethod
     def add_friendship_request(cls, username, friend_id):
+
         current = cls.query.filter_by(username=username).first()
         friend = cls.query.filter_by(id=friend_id).first()
-        friend.friendship_request.append(current)
+
+        if current in friend.friendship or current in friend.friendship_request:
+            return False
+        else:
+            friend.friendship_request.append(current)
+            db.session.commit()
+            return True
+        
+    @classmethod
+    def reject_friendship_request(cls, username, friend_id):
+        current = cls.query.filter_by(username=username).first()
+        friend = cls.query.filter_by(id=friend_id).first()
+        current.friendship_request.remove(friend)
         db.session.commit()
         return current
 
@@ -65,6 +78,7 @@ class UserModel(db.Model):
         friend = cls.query.filter_by(id=friend_id).first()
         current.friendship.append(friend)
         friend.friendship.append(current)
+        current.friendship_request.remove(friend)
         db.session.commit()
         return current
 
