@@ -20,8 +20,8 @@ class Exercise(db.Model):
         db.session.commit()
 
     @classmethod
-    def find_by_name(cls, username):
-        return cls.query.filter_by(name=username).first()
+    def find_by_id(cls, exercise_id):
+        return cls.query.filter_by(id=exercise_id).first()
 
     @classmethod
     def return_all(cls):

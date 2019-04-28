@@ -37,6 +37,8 @@ class UserModel(db.Model):
         db.session.add(self)
         db.session.commit()
 
+
+
     @classmethod
     def update_user(cls, user, data):
         user.name = data["name"]
@@ -63,12 +65,21 @@ class UserModel(db.Model):
             friend.friendship_request.append(current)
             db.session.commit()
             return True
-        
+
     @classmethod
     def reject_friendship_request(cls, username, friend_id):
         current = cls.query.filter_by(username=username).first()
         friend = cls.query.filter_by(id=friend_id).first()
         current.friendship_request.remove(friend)
+        db.session.commit()
+        return current
+
+    @classmethod
+    def remove_friendship(cls, username, friend_id):
+        current = cls.query.filter_by(username=username).first()
+        friend = cls.query.filter_by(id=friend_id).first()
+        current.friendship.remove(friend)
+        friend.friendship.remove(current)
         db.session.commit()
         return current
 

@@ -11,18 +11,8 @@ class Item:
         return self.__str__()
 
 
-items = [Item("compas", 4, 12),
-         Item("cartabon", 2, 2),
-         Item("regla", 2, 1),
-         Item("escuadra", 1, 1),
-         Item("transportardor", 10, 4),
-         ]
-c = 0
-
-
-def ks(index, weight):
-    global items
-    global c
+def knapsack_resolver(index, weight, items):
+    c = 0
     c += 1
 
     if index >= len(items):
@@ -31,13 +21,8 @@ def ks(index, weight):
     item = items[index]
 
     if item.weight > weight:
-        return ks(index + 1, weight)
+        return knapsack_resolver(index + 1, weight, items)
     else:
-
-        a = max(ks(index + 1, weight),
-                ks(index + 1, weight - item.weight) + item.value)
+        a = max(knapsack_resolver(index + 1, weight, items),
+                knapsack_resolver(index + 1, weight - item.weight, items) + item.value)
         return a
-
-
-print("Max sum: %d" % (ks(0, 20),))
-print("Iterations %d" % (c,))

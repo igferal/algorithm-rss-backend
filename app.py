@@ -14,6 +14,7 @@ db = SQLAlchemy(app)
 
 import models.models
 
+
 @app.before_first_request
 def create_tables():
     db.create_all()
@@ -42,4 +43,7 @@ api.add_resource(res.GetAllExercises, '/exercises')
 api.add_resource(res.SendFriendshipRequest, '/addFriend/<friend>')
 api.add_resource(res.AcceptFriendshipRequest, '/acceptFriend/<friend>')
 api.add_resource(res.RejectFriendshipRequest, '/rejectFriend/<friend>')
-
+api.add_resource(res.RemoveFriendshipRequest, '/removeFriendship/<friend>')
+api.add_resource(res.InitExerciseResolution, '/initResolution')
+api.add_resource(res.EndResolution, '/endResolution')
+api.add_resource(res.SendKnapsackExercise, '/knapsack')
