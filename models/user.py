@@ -37,8 +37,6 @@ class UserModel(db.Model):
         db.session.add(self)
         db.session.commit()
 
-
-
     @classmethod
     def update_user(cls, user, data):
         user.name = data["name"]
@@ -52,6 +50,10 @@ class UserModel(db.Model):
     @classmethod
     def find_by_username(cls, username):
         return cls.query.filter_by(username=username).first()
+
+    @classmethod
+    def find_by_id(cls, id):
+        return cls.query.filter_by(id=id).first()
 
     @classmethod
     def add_friendship_request(cls, username, friend_id):

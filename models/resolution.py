@@ -1,6 +1,7 @@
 import datetime
 
 from app import db
+from models.user import UserModel
 
 
 class Resolution(db.Model):
@@ -30,7 +31,8 @@ class Resolution(db.Model):
         }
 
     @staticmethod
-    def to_json(x):
+    def to_json(x, user=None):
+
         return {
             'id': x.id,
             'start_date': Resolution.to_json_date(x.start_date),
@@ -39,17 +41,18 @@ class Resolution(db.Model):
             'difficulty': x.difficulty,
             'final_time': x.final_time,
             'user_id': x.user_id,
-            'exercise_id': x.exercise_id
+            'exercise_id': x.exercise_id,
+            "user": user.name if user is not None else ""
         }
 
     @classmethod
-    def end_resolution(cls, resolution_id):
+    def end_resolution(cls, resolution_id, penalization):
         current = cls.query.filter_by(id=resolution_id).first()
         if current.ended is True:
             return False
         current.ended = True
         current.end_date = datetime.datetime.now()
-        current.final_time = (current.end_date - current.start_date).total_seconds()
+        current.final_time = ((current.end_date - current.start_date).total_seconds() + penalization * 10)
         db.session.commit()
         return current
 
@@ -65,3 +68,23 @@ class Resolution(db.Model):
             return {"message": "{} row(s) deleted".format(num_rows_deleted)}
         except:
             return {"message": "Something went wrong"}
+
+    @classmethod
+    def get_all_my_resolutions(cls, user_id, exercise_list):
+        resolutions = []
+        for exercise in exercise_list:
+            resolutions.append(
+                {"exercise": exercise,
+                 "resolutions":
+                     list(
+                         map(lambda x: cls.to_json(x, None),
+                             cls.query.filter_by(user_id=user_id, exercise_id=exercise["id"]).order_by(
+                                 Resolution.final_time).all()))})
+
+        return resolutions
+
+    @classmethod
+    def get_best_times_at_exercise(cls, exercise_id):
+        return list(map(lambda x:
+                        cls.to_json(x, UserModel.find_by_id(x.user_id)),
+                        cls.query.filter_by(exercise_id=exercise_id).order_by(Resolution.final_time).limit(20).all()))
